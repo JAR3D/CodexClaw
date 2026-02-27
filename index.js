@@ -57,14 +57,15 @@ client.on(Events.MessageCreate, async (message) => {
       thread = resumeThread(threadId);
     } else {
       thread = startNewThread();
-      // O SDK persiste threads; precisamos do ID para recuperar depois.
-      // Normalmente o thread tem uma propriedade id; se não tiver, vamos ajustar no próximo passo.
-      threadId = thread.id;
-      saveSession(channelId, threadId);
       console.log(`🧠 Nova thread criada: ${threadId}`);
     }
 
     const turn = await thread.run(cleanedContent);
+
+    if (!threadId && thread._id) {
+      saveSession(channelId, thread._id);
+      console.log(`💾 Thread id guardado: ${thread._id}`);
+    }
 
     const replyText = (turn.finalResponse || "").trim();
     const safeReply =
