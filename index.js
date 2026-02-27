@@ -1,8 +1,8 @@
 import "dotenv/config";
 
 import { Client, GatewayIntentBits, Events } from "discord.js";
-import { getSession, saveSession } from "./db";
-import { startNewThread, resumeThread } from "./codexClient";
+import { getSession, saveSession } from "./db.js";
+import { startNewThread, resumeThread } from "./codexClient.js";
 
 const client = new Client({
   intents: [
