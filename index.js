@@ -1,8 +1,8 @@
-require("dotenv").config();
+import "dotenv/config";
 
-const { Client, GatewayIntentBits, Events } = require("discord.js");
-const { getSession, saveSession } = require("./db");
-const { startNewThread, resumeThread } = require("./codexClient");
+import { Client, GatewayIntentBits, Events } from "discord.js";
+import { getSession, saveSession } from "./db";
+import { startNewThread, resumeThread } from "./codexClient";
 
 const client = new Client({
   intents: [

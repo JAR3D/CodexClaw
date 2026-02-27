@@ -1,6 +1,6 @@
-const Database = require('better-sqlite3');
+import Database from "better-sqlite3";
 
-const db = new Database('codexclaw.db');
+const db = new Database("codexclaw.db");
 
 // Criar tabela se não existir
 db.exec(`
@@ -10,7 +10,7 @@ db.exec(`
   );
 `);
 
-function getSession(channelId) {
+export function getSession(channelId) {
   const row = db.prepare(
     'SELECT thread_id FROM sessions WHERE channel_id = ?'
   ).get(channelId);
@@ -18,15 +18,10 @@ function getSession(channelId) {
   return row ? row.thread_id : null;
 }
 
-function saveSession(channelId, threadId) {
+export function saveSession(channelId, threadId) {
   db.prepare(`
     INSERT INTO sessions (channel_id, thread_id)
     VALUES (?, ?)
     ON CONFLICT(channel_id) DO UPDATE SET thread_id=excluded.thread_id
   `).run(channelId, threadId);
 }
-
-module.exports = {
-  getSession,
-  saveSession
-};

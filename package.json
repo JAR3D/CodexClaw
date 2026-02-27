@@ -9,7 +9,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "dependencies": {
     "@openai/codex-sdk": "^0.105.0",
     "better-sqlite3": "^12.6.2",

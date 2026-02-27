@@ -1,5 +1,5 @@
-require("dotenv").config();
-const { Codex } = require("@openai/codex-sdk");
+import "dotenv/config";
+import { Codex } from "@openai/codex-sdk";
 
 const { CODEX_API_KEY } = process.env;
 
@@ -12,7 +12,7 @@ const codex = new Codex({
   apiKey: CODEX_API_KEY,
 });
 
-function startNewThread() {
+export function startNewThread() {
   // Para MVP: seguro e não-interativo.
   // read-only + sem aprovações evita “ficar preso” a pedir confirmação.
   return codex.startThread({
@@ -24,11 +24,7 @@ function startNewThread() {
   });
 }
 
-function resumeThread(threadId) {
+export function resumeThread(threadId) {
   return codex.resumeThread(threadId);
 }
 
-module.exports = {
-  startNewThread,
-  resumeThread,
-};
