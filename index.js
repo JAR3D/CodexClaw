@@ -57,7 +57,7 @@ client.on(Events.MessageCreate, async (message) => {
       thread = resumeThread(threadId);
     } else {
       thread = startNewThread();
-      console.log(`🧠 Nova thread criada: ${threadId}`);
+      console.log("🧠 Thread nova criada (ainda sem id persistido)");
     }
 
     const turn = await thread.run(cleanedContent);
