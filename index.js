@@ -4,6 +4,28 @@ import { Client, GatewayIntentBits, Events } from "discord.js";
 import { getSession, saveSession } from "./db.js";
 import { startNewThread, resumeThread } from "./codexClient.js";
 
+// Fila por canal para evitar concorrência (mensagens em sequência no mesmo canal)
+const channelQueues = new Map();
+
+function enqueueByChannel(channelId, task) {
+  const prev = channelQueues.get(channelId) || Promise.resolve();
+
+  // Encadeia a tarefa na fila existente
+  const next = prev.then(task);
+
+  // Guarda o novo "tail" da fila e limpa quando terminar
+  channelQueues.set(
+    channelId,
+    next.finally(() => {
+      if (channelQueues.get(channelId) === next) {
+        channelQueues.delete(channelId);
+      }
+    })
+  );
+
+  return next;
+}
+
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -44,40 +66,52 @@ client.on(Events.MessageCreate, async (message) => {
 
     console.log(`Mensagem recebida: ${cleanedContent}`);
 
-    // UX: indicar que está a “pensar”
-    await message.channel.sendTyping();
-
     // Sessão por canal (podes mudar para sessão por user mais tarde)
     const channelId = message.channel.id;
 
-    let threadId = getSession(channelId);
-    let thread;
+    await enqueueByChannel(channelId, async () => {
+      try {
+        // UX: indicar que está a “pensar” (1x por mensagem na fila)
+        await message.channel.sendTyping();
 
-    if (threadId) {
-      thread = resumeThread(threadId);
-    } else {
-      thread = startNewThread();
-      console.log("🧠 Thread nova criada (ainda sem id persistido)");
-    }
+        let threadId = getSession(channelId);
+        let thread;
 
-    const turn = await thread.run(cleanedContent);
+        if (threadId) {
+          thread = resumeThread(threadId);
+        } else {
+          thread = startNewThread();
+          console.log("🧠 Thread nova criada (ainda sem id persistido)");
+        }
 
-    if (!threadId && thread._id) {
-      saveSession(channelId, thread._id);
-      console.log(`💾 Thread id guardado: ${thread._id}`);
-    }
+        const turn = await thread.run(cleanedContent);
 
-    const replyText = (turn.finalResponse || "").trim();
-    const safeReply =
-      replyText.length > 0 ? replyText : "(Sem resposta do Codex)";
+        // Importante: este save agora acontece dentro da fila -> evita race no 1º save
+        if (!threadId && thread._id) {
+          saveSession(channelId, thread._id);
+          console.log(`💾 Thread id guardado: ${thread._id}`);
+        }
 
-    // Discord tem limite ~2000 chars. Vamos cortar no MVP.
-    const truncated =
-      safeReply.length > 1800 ? safeReply.slice(0, 1800) + "…" : safeReply;
+        const replyText = (turn.finalResponse || "").trim();
+        const safeReply =
+          replyText.length > 0 ? replyText : "(Sem resposta do Codex)";
 
-    await message.reply(truncated);
+        // Discord tem limite ~2000 chars. Vamos cortar no MVP.
+        const truncated =
+          safeReply.length > 1800 ? safeReply.slice(0, 1800) + "…" : safeReply;
+
+        await message.reply(truncated);
+      } catch (err) {
+        console.error("Erro no handler (fila):", err);
+        try {
+          await message.reply("⚠️ Deu erro do meu lado. Vê os logs na VPS.");
+        } catch {
+          // ignora erros de reply (ex: mensagem apagada / permissões)
+        }
+      }
+    });
   } catch (err) {
-    console.error("Erro no handler:", err);
+    console.error("Erro no handler (outer):", err);
     await message.reply("⚠️ Deu erro do meu lado. Vê os logs na VPS.");
   }
 });
