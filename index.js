@@ -3,7 +3,7 @@ import "dotenv/config";
 
 import { Client, GatewayIntentBits, Events } from "discord.js";
 import { getSession, saveSession } from "./db.js";
-import { startNewThread, resumeThread } from "./codexClient.js";
+import { getCodexEngine } from "./src/engine/codexEngine.js";
 import { splitIntoChunks, enqueueByChannel, isOnCooldown, log } from "./lib.js";
 
 const client = new Client({
@@ -19,6 +19,8 @@ const { DISCORD_BOT_TOKEN, ALLOWED_USER_ID, ALLOWED_CHANNEL_ID } = process.env;
 client.once(Events.ClientReady, () => {
   console.log(`✅ Logged in as ${client.user.tag}`);
 });
+
+const engine = getCodexEngine();
 
 client.on(Events.MessageCreate, async (message) => {
   try {
@@ -72,10 +74,8 @@ client.on(Events.MessageCreate, async (message) => {
 
         threadId = getSession(channelId);
 
-        if (threadId) {
-          thread = resumeThread(threadId);
-        } else {
-          thread = startNewThread();
+        thread = engine.getThread(threadId);
+        if (!threadId) {
           console.log("🧠 Thread nova criada (ainda sem id persistido)");
         }
 
