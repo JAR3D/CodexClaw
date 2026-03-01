@@ -26,6 +26,29 @@ function enqueueByChannel(channelId, task) {
   return next;
 }
 
+function splitIntoChunks(text, maxLen = 1800) {
+  const chunks = [];
+  let i = 0;
+
+  while (i < text.length) {
+    // tenta cortar num limite "bonito" (quebra de linha) perto do maxLen
+    const end = Math.min(i + maxLen, text.length);
+    let sliceEnd = end;
+
+    if (end < text.length) {
+      const lastNewline = text.lastIndexOf("\n", end);
+      if (lastNewline > i + Math.floor(maxLen * 0.6)) {
+        sliceEnd = lastNewline;
+      }
+    }
+
+    chunks.push(text.slice(i, sliceEnd));
+    i = sliceEnd;
+  }
+
+  return chunks;
+}
+
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -94,11 +117,16 @@ client.on(Events.MessageCreate, async (message) => {
         const safeReply =
           replyText.length > 0 ? replyText : "(Sem resposta do Codex)";
 
-        // Discord tem limite ~2000 chars. Vamos cortar no MVP.
-        const truncated =
-          safeReply.length > 1800 ? safeReply.slice(0, 1800) + "…" : safeReply;
+        // Discord tem limite ~2000 chars.
+        const chunks = splitIntoChunks(safeReply, 1800);
 
-        await message.reply(truncated);
+        // primeira resposta como reply à mensagem original
+        await message.reply(chunks[0]);
+
+        // restantes chunks como mensagens normais no canal
+        for (let i = 1; i < chunks.length; i++) {
+          await message.channel.send(chunks[i]);
+        }
       } catch (err) {
         console.error("Erro no handler (fila):", err);
         try {
