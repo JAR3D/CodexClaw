@@ -4,9 +4,10 @@ import "dotenv/config";
 import { Client, GatewayIntentBits, Events } from "discord.js";
 import { getSession, saveSession } from "./db.js";
 import { getCodexEngine } from "./src/engine/codexEngine.js";
-import { splitIntoChunks, enqueueByChannel, isOnCooldown, log } from "./lib.js";
+import { splitIntoChunks, log } from "./lib.js";
 import { isAllowedMessage } from "./src/policies/auth.js";
 import { createChannelCooldown } from "./src/policies/rateLimit.js";
+import { createChannelQueue } from "./src/policies/concurrency.js";
 
 const client = new Client({
   intents: [
@@ -23,8 +24,8 @@ client.once(Events.ClientReady, () => {
 });
 
 const engine = getCodexEngine();
-
 const cooldown = createChannelCooldown({ cooldownMs: 3000 });
+const queue = createChannelQueue();
 
 client.on(Events.MessageCreate, async (message) => {
   try {
@@ -56,7 +57,7 @@ client.on(Events.MessageCreate, async (message) => {
       return;
     }
 
-    await enqueueByChannel(channelId, async () => {
+    await queue.enqueue(channelId, async () => {
       const runId = crypto.randomUUID();
       const t0 = Date.now();
 

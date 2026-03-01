@@ -1,25 +1,3 @@
-// Fila por canal para evitar concorrência (mensagens em sequência no mesmo canal)
-const channelQueues = new Map();
-
-export function enqueueByChannel(channelId, task) {
-  const prev = channelQueues.get(channelId) || Promise.resolve();
-
-  // Encadeia a tarefa na fila existente
-  const next = prev.then(task);
-
-  // Guarda o novo "tail" da fila e limpa quando terminar
-  channelQueues.set(
-    channelId,
-    next.finally(() => {
-      if (channelQueues.get(channelId) === next) {
-        channelQueues.delete(channelId);
-      }
-    })
-  );
-
-  return next;
-}
-
 export function splitIntoChunks(text, maxLen = 1800) {
   const chunks = [];
   let i = 0;
@@ -41,17 +19,6 @@ export function splitIntoChunks(text, maxLen = 1800) {
   }
 
   return chunks;
-}
-
-const channelCooldownMs = 3000;
-const lastRequestAtByChannel = new Map();
-
-export function isOnCooldown(channelId) {
-  const now = Date.now();
-  const last = lastRequestAtByChannel.get(channelId) || 0;
-  if (now - last < channelCooldownMs) return true;
-  lastRequestAtByChannel.set(channelId, now);
-  return false;
 }
 
 export function log(event, payload = {}) {
