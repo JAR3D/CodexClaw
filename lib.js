@@ -42,3 +42,14 @@ export function splitIntoChunks(text, maxLen = 1800) {
 
   return chunks;
 }
+
+const channelCooldownMs = 3000;
+const lastRequestAtByChannel = new Map();
+
+export function isOnCooldown(channelId) {
+  const now = Date.now();
+  const last = lastRequestAtByChannel.get(channelId) || 0;
+  if (now - last < channelCooldownMs) return true;
+  lastRequestAtByChannel.set(channelId, now);
+  return false;
+}

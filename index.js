@@ -3,7 +3,7 @@ import "dotenv/config";
 import { Client, GatewayIntentBits, Events } from "discord.js";
 import { getSession, saveSession } from "./db.js";
 import { startNewThread, resumeThread } from "./codexClient.js";
-import { splitIntoChunks, enqueueByChannel } from "./lib.js";
+import { splitIntoChunks, enqueueByChannel, isOnCooldown } from "./lib.js";
 
 const client = new Client({
   intents: [
@@ -45,6 +45,11 @@ client.on(Events.MessageCreate, async (message) => {
 
     // Sessão por canal (podes mudar para sessão por user mais tarde)
     const channelId = message.channel.id;
+
+    if (isOnCooldown(channelId)) {
+      await message.reply("Espera 3s antes de fazer outro pedido 🙂");
+      return;
+    }
 
     await enqueueByChannel(channelId, async () => {
       try {
