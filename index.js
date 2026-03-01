@@ -5,6 +5,8 @@ import { Client, GatewayIntentBits, Events } from "discord.js";
 import { getSession, saveSession } from "./db.js";
 import { getCodexEngine } from "./src/engine/codexEngine.js";
 import { splitIntoChunks, enqueueByChannel, isOnCooldown, log } from "./lib.js";
+import { isAllowedMessage } from "./src/policies/auth.js";
+import { createChannelCooldown } from "./src/policies/rateLimit.js";
 
 const client = new Client({
   intents: [
@@ -22,18 +24,17 @@ client.once(Events.ClientReady, () => {
 
 const engine = getCodexEngine();
 
+const cooldown = createChannelCooldown({ cooldownMs: 3000 });
+
 client.on(Events.MessageCreate, async (message) => {
   try {
-    if (message.author.bot) return;
-
-    // Só permitir o canal configurado
-    if (message.channel.id !== ALLOWED_CHANNEL_ID) return;
-
-    // Só permitir o teu user
-    if (message.author.id !== ALLOWED_USER_ID) return;
-
-    // Só responder se for mencionado
-    if (!message.mentions.has(client.user)) return;
+    if (
+      !isAllowedMessage(message, {
+        allowedChannelId: ALLOWED_CHANNEL_ID,
+        allowedUserId: ALLOWED_USER_ID,
+        botUser: client.user,
+      })
+    ) return;
 
     // Remove o mention do texto
     const mentionRegex = new RegExp(`^<@!?${client.user.id}>\\s*`);
@@ -49,7 +50,8 @@ client.on(Events.MessageCreate, async (message) => {
     // Sessão por canal (podes mudar para sessão por user mais tarde)
     const channelId = message.channel.id;
 
-    if (isOnCooldown(channelId)) {
+    const cd = cooldown.hit(channelId);
+    if (!cd.ok) {
       await message.reply("Espera 3s antes de fazer outro pedido 🙂");
       return;
     }
