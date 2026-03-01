@@ -54,10 +54,8 @@ client.on(Events.MessageCreate, async (message) => {
     if (!message.mentions.has(client.user)) return;
 
     // Remove o mention do texto
-    const cleanedContent = message.content.replace(
-      `<@${client.user.id}>`,
-      ""
-    ).trim();
+    const mentionRegex = new RegExp(`^<@!?${client.user.id}>\\s*`);
+    const cleanedContent = message.content.replace(mentionRegex, "").trim();
 
     if (!cleanedContent) {
       await message.reply("Escreve uma mensagem depois do mention 🙂");
