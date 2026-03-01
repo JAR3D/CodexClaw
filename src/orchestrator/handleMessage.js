@@ -1,6 +1,5 @@
 import crypto from "node:crypto";
 import { getSession, saveSession } from "../../db.js";
-import { splitIntoChunks } from "../../lib.js";
 
 function splitIntoChunks(text, maxLen = 1800) {
   const chunks = [];
