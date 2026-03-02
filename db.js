@@ -72,9 +72,9 @@ export function addMemory({ channelId, kind = "note", content, salience = 1.0 })
 }
 
 export function searchMemories({ channelId, query, limit = 6 }) {
-  const q = (query || "").trim();
+  const qRaw = (query || "").trim();
 
-  if (!q) {
+  if (!qRaw) {
     return db.prepare(`
       SELECT id, kind, content, salience, created_at, last_used_at
       FROM memories
@@ -84,8 +84,24 @@ export function searchMemories({ channelId, query, limit = 6 }) {
     `).all(channelId, limit);
   }
 
-  // FTS5: forçar pesquisa literal (evita operadores como "-" em "diz-me")
-  const ftsQuery = `"${q.replace(/"/g, '""')}"`;
+  // Normaliza hífens para espaços e tokeniza
+  const normalized = qRaw.replace(/[-–—]/g, " ");
+  const tokens = Array.from(
+    new Set(
+      normalized
+        .toLowerCase()
+        .split(/[^a-z0-9À-ÿ]+/i)
+        .map((t) => t.trim())
+        .filter((t) => t.length >= 3)
+    )
+  ).slice(0, 8);
+
+  if (tokens.length === 0) {
+    return [];
+  }
+
+  // FTS5 query segura: "token" AND "token2" ...
+  const ftsQuery = tokens.map((t) => `"${t.replace(/"/g, '""')}"`).join(" AND ");
 
   return db.prepare(`
     SELECT m.id, m.kind, m.content, m.salience, m.created_at, m.last_used_at,
