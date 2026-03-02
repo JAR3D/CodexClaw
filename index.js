@@ -7,6 +7,7 @@ import { isAllowedMessage } from "./src/policies/auth.js";
 import { createChannelCooldown } from "./src/policies/rateLimit.js";
 import { createChannelQueue } from "./src/policies/concurrency.js";
 import { handleMessage } from "./src/orchestrator/handleMessage.js";
+import { createSessionsRepo } from "./src/store/sessionsRepo.js";
 
 const client = new Client({
   intents: [
@@ -25,6 +26,7 @@ client.once(Events.ClientReady, () => {
 const engine = getCodexEngine();
 const cooldown = createChannelCooldown({ cooldownMs: 3000 });
 const queue = createChannelQueue();
+const sessionsRepo = createSessionsRepo();
 
 client.on(Events.MessageCreate, async (message) => {
   try {
@@ -62,7 +64,8 @@ client.on(Events.MessageCreate, async (message) => {
       message,
       engine,
       queue,
-      log
+      log,
+      sessionsRepo,
     })
   } catch (err) {
     console.error("Erro no handler (outer):", err);

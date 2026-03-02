@@ -1,5 +1,4 @@
 import crypto from "node:crypto";
-import { getSession, saveSession } from "../../db.js";
 
 function splitIntoChunks(text, maxLen = 1800) {
   const chunks = [];
@@ -24,7 +23,7 @@ function splitIntoChunks(text, maxLen = 1800) {
   return chunks;
 }
 
-export async function handleMessage({ message, engine, queue, log }) {
+export async function handleMessage({ message, engine, queue, log, sessionsRepo }) {
   const channelId = message.channel.id;
 
   await queue.enqueue(channelId, async () => {
@@ -43,13 +42,13 @@ export async function handleMessage({ message, engine, queue, log }) {
     try {
       await message.channel.sendTyping();
 
-      threadId = getSession(channelId);
+      threadId = sessionsRepo.getThreadId(channelId);
       thread = engine.getThread(threadId);
 
       const turn = await thread.run(message.__cleanedContent);
 
       if (!threadId && thread._id) {
-        saveSession(channelId, thread._id);
+        sessionsRepo.setThreadId(channelId, thread._id);
       }
 
       const replyText = (turn.finalResponse || "").trim();
