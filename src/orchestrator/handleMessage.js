@@ -49,6 +49,13 @@ export async function handleMessage({ message, cleanedContent, engine, queue, lo
 
       // 3) chamar o motor com contexto + input
       const prompt = `${injectedContext}${cleanedContent}`;
+
+      log("memories_injected", {
+        runId,
+        memoriesCount: memories?.length ?? 0,
+        injectedChars: injectedContext.length,
+      });
+
       const turn = await thread.run(prompt);
 
       if (!threadId && thread._id) {
