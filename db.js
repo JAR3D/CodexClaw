@@ -25,3 +25,73 @@ export function saveSession(channelId, threadId) {
     ON CONFLICT(channel_id) DO UPDATE SET thread_id=excluded.thread_id
   `).run(channelId, threadId);
 }
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS memories (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    channel_id TEXT NOT NULL,
+    kind TEXT NOT NULL DEFAULT 'note',
+    content TEXT NOT NULL,
+    salience REAL NOT NULL DEFAULT 1.0,
+    created_at INTEGER NOT NULL DEFAULT (unixepoch()),
+    last_used_at INTEGER
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_memories_channel_created
+    ON memories(channel_id, created_at DESC);
+
+  -- FTS5 index (contentless table linked to memories)
+  CREATE VIRTUAL TABLE IF NOT EXISTS memories_fts
+    USING fts5(content, content='memories', content_rowid='id');
+
+  -- Keep FTS in sync
+  CREATE TRIGGER IF NOT EXISTS memories_ai AFTER INSERT ON memories BEGIN
+    INSERT INTO memories_fts(rowid, content) VALUES (new.id, new.content);
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS memories_ad AFTER DELETE ON memories BEGIN
+    INSERT INTO memories_fts(memories_fts, rowid, content)
+    VALUES ('delete', old.id, old.content);
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS memories_au AFTER UPDATE OF content ON memories BEGIN
+    INSERT INTO memories_fts(memories_fts, rowid, content)
+    VALUES ('delete', old.id, old.content);
+    INSERT INTO memories_fts(rowid, content) VALUES (new.id, new.content);
+  END;
+`);
+
+export function addMemory({ channelId, kind = "note", content, salience = 1.0 }) {
+  const stmt = db.prepare(`
+    INSERT INTO memories (channel_id, kind, content, salience)
+    VALUES (?, ?, ?, ?)
+  `);
+
+  const info = stmt.run(channelId, kind, content, salience);
+  return info.lastInsertRowid;
+}
+
+export function searchMemories({ channelId, query, limit = 6 }) {
+  const q = (query || "").trim();
+
+  if (!q) {
+    return db.prepare(`
+      SELECT id, kind, content, salience, created_at, last_used_at
+      FROM memories
+      WHERE channel_id = ?
+      ORDER BY created_at DESC
+      LIMIT ?
+    `).all(channelId, limit);
+  }
+
+  return db.prepare(`
+    SELECT m.id, m.kind, m.content, m.salience, m.created_at, m.last_used_at,
+           bm25(memories_fts) AS score
+    FROM memories_fts
+    JOIN memories m ON m.id = memories_fts.rowid
+    WHERE memories_fts MATCH ?
+      AND m.channel_id = ?
+    ORDER BY score
+    LIMIT ?
+  `).all(q, channelId, limit);
+}
