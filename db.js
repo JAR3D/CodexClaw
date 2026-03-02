@@ -84,6 +84,9 @@ export function searchMemories({ channelId, query, limit = 6 }) {
     `).all(channelId, limit);
   }
 
+  // FTS5: forçar pesquisa literal (evita operadores como "-" em "diz-me")
+  const ftsQuery = `"${q.replace(/"/g, '""')}"`;
+
   return db.prepare(`
     SELECT m.id, m.kind, m.content, m.salience, m.created_at, m.last_used_at,
            bm25(memories_fts) AS score
@@ -93,5 +96,5 @@ export function searchMemories({ channelId, query, limit = 6 }) {
       AND m.channel_id = ?
     ORDER BY score
     LIMIT ?
-  `).all(q, channelId, limit);
+  `).all(ftsQuery, channelId, limit);
 }
