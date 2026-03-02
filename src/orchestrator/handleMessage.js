@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 
 import { splitIntoChunks } from "../policies/chunking.js";
 
-export async function handleMessage({ message, cleanedContent, engine, queue, log, sessionsRepo }) {
+export async function handleMessage({ message, cleanedContent, engine, queue, log, sessionsRepo, memoriesRepo }) {
   const channelId = message.channel.id;
 
   await queue.enqueue(channelId, async () => {
@@ -24,7 +24,32 @@ export async function handleMessage({ message, cleanedContent, engine, queue, lo
       threadId = sessionsRepo.getThreadId(channelId);
       thread = engine.getThread(threadId);
 
-      const turn = await thread.run(cleanedContent);
+      // 1) retrieval mínimo
+      let memories = [];
+      try {
+        memories = memoriesRepo?.searchMemories?.({
+          channelId: message.channelId,
+          query: cleanedContent,
+          limit: 6,
+        }) ?? [];
+      } catch (e) {
+        log?.("memories_search_error", { runId, err: e?.message || String(e) });
+        memories = [];
+      }
+
+      // 2) construir contexto curto
+      const memoryLines = (memories || [])
+        .slice(0, 6)
+        .map((m) => `- ${m.content}`)
+        .join("\n");
+
+      const injectedContext = memoryLines
+        ? `Contexto recuperado (pode estar incompleto):\n${memoryLines}\n\n`
+        : "";
+
+      // 3) chamar o motor com contexto + input
+      const prompt = `${injectedContext}${cleanedContent}`;
+      const turn = await thread.run(prompt);
 
       if (!threadId && thread._id) {
         sessionsRepo.setThreadId(channelId, thread._id);
