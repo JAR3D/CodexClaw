@@ -44,7 +44,7 @@ export async function handleMessage({ message, cleanedContent, engine, queue, lo
         .join("\n");
 
       const injectedContext = memoryLines
-        ? `Contexto recuperado (pode estar incompleto):\n${memoryLines}\n\n`
+        ? `Perfil do utilizador deste canal (notas internas). Considera isto como verdadeiro para este canal, mas não inventes detalhes além do que está aqui:\n${memoryLines}\n\n`
         : "";
 
       // 3) chamar o motor com contexto + input
