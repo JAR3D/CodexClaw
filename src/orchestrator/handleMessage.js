@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 
 import { splitIntoChunks } from "../policies/chunking";
 
-export async function handleMessage({ message, engine, queue, log, sessionsRepo }) {
+export async function handleMessage({ message, cleanedContent, engine, queue, log, sessionsRepo }) {
   const channelId = message.channel.id;
 
   await queue.enqueue(channelId, async () => {
@@ -24,7 +24,7 @@ export async function handleMessage({ message, engine, queue, log, sessionsRepo 
       threadId = sessionsRepo.getThreadId(channelId);
       thread = engine.getThread(threadId);
 
-      const turn = await thread.run(message.__cleanedContent);
+      const turn = await thread.run(cleanedContent);
 
       if (!threadId && thread._id) {
         sessionsRepo.setThreadId(channelId, thread._id);

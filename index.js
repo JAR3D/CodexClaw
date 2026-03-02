@@ -58,10 +58,9 @@ client.on(Events.MessageCreate, async (message) => {
       return;
     }
 
-    message.__cleanedContent = cleanedContent;
-
     await handleMessage({
       message,
+      cleanedContent,
       engine,
       queue,
       log,
