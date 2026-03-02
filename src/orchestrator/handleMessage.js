@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 
-import { splitIntoChunks } from "../policies/chunking";
+import { splitIntoChunks } from "../policies/chunking.js";
 
 export async function handleMessage({ message, cleanedContent, engine, queue, log, sessionsRepo }) {
   const channelId = message.channel.id;
