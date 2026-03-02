@@ -101,7 +101,7 @@ export function searchMemories({ channelId, query, limit = 6 }) {
   }
 
   // FTS5 query segura: "token" AND "token2" ...
-  const ftsQuery = tokens.map((t) => `"${t.replace(/"/g, '""')}"`).join(" AND ");
+  const ftsQuery = tokens.map((t) => `"${t.replace(/"/g, '""')}"`).join(" OR ");
 
   return db.prepare(`
     SELECT m.id, m.kind, m.content, m.salience, m.created_at, m.last_used_at,
