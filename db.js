@@ -79,6 +79,7 @@ export function searchMemories({ channelId, query, limit = 6 }) {
       SELECT id, kind, content, salience, created_at, last_used_at
       FROM memories
       WHERE channel_id = ?
+        AND kind != 'prefs'
       ORDER BY created_at DESC
       LIMIT ?
     `).all(channelId, limit);
@@ -110,6 +111,7 @@ export function searchMemories({ channelId, query, limit = 6 }) {
     JOIN memories m ON m.id = memories_fts.rowid
     WHERE memories_fts MATCH ?
       AND m.channel_id = ?
+      AND m.kind != 'prefs'
     ORDER BY score
     LIMIT ?
   `).all(ftsQuery, channelId, limit);
