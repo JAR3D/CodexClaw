@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 
 import { splitIntoChunks } from "../policies/chunking.js";
+import { dedupeById } from "../../lib.js";
 
 export async function handleMessage({ message, cleanedContent, engine, queue, log, sessionsRepo, memoriesRepo }) {
   const channelId = message.channel.id;
@@ -51,18 +52,34 @@ export async function handleMessage({ message, cleanedContent, engine, queue, lo
         retrieved = [];
       }
 
-      // 2) construir contexto curto (prefs primeiro; garantir que prefs nunca são cortadas)
-      const seenIds = new Set();
-      const combined = [...prefs, ...retrieved].filter((m) => {
-        if (!m?.id) return false;
-        if (seenIds.has(m.id)) return false;
-        seenIds.add(m.id);
-        return true;
-      });
+      // 2) hard rule: prefs sempre primeiro; facts/notes só completam até ao limite
+      const prefsUnique = dedupeById(prefs);
+      const factsUnique = dedupeById(retrieved);
 
+      const MAX_LINES = 6;
+      const remainingForFacts = Math.max(0, MAX_LINES - prefsUnique.length);
+
+      // Só tocamos / injectamos o que realmente entra no prompt
+      const injectedMemories = [
+        ...prefsUnique,
+        ...factsUnique.slice(0, remainingForFacts),
+      ];
+
+      // 2.1) touch das memórias efectivamente injectadas
+      let touchedCount = 0;
+      try {
+        if (injectedMemories.length > 0 && memoriesRepo?.touchMemories) {
+          const ids = injectedMemories.map((m) => m.id).filter(Boolean);
+          touchedCount = memoriesRepo.touchMemories({ ids }) ?? 0;
+        }
+      } catch (e) {
+        log?.("memories_touch_error", { runId, err: e?.message || String(e) });
+      }
+
+      // 2.2) logs de debugging (ordem real injectada)
       log("memories_selected", {
         runId,
-        memories: combined.map((m) => ({
+        memories: injectedMemories.map((m) => ({
           id: m.id,
           kind: m.kind,
           last_used_at: m.last_used_at ?? null,
@@ -72,21 +89,7 @@ export async function handleMessage({ message, cleanedContent, engine, queue, lo
         })),
       });
 
-      // 2.1) touch das memórias efectivamente injectadas
-      let touchedCount = 0;
-      try {
-        if (combined.length > 0 && memoriesRepo?.touchMemories) {
-          const ids = combined.map((m) => m.id).filter(Boolean);
-          touchedCount = memoriesRepo.touchMemories({ ids }) ?? 0;
-        }
-      } catch (e) {
-        log?.("memories_touch_error", { runId, err: e?.message || String(e) });
-      }
-
-      const MAX_LINES = 6;
-      const keep = Math.max(MAX_LINES, prefs.length);
-      const memoryLines = combined
-        .slice(0, keep)
+      const memoryLines = injectedMemories
         .map((m) => `- ${m.content}`)
         .join("\n");
 
@@ -96,8 +99,9 @@ export async function handleMessage({ message, cleanedContent, engine, queue, lo
 
       log("memories_injected", {
         runId,
-        prefsCount: prefs?.length ?? 0,
-        retrievedCount: retrieved?.length ?? 0,
+        prefsCount: prefsUnique.length,
+        retrievedCount: factsUnique.length,
+        injectedCount: injectedMemories.length,
         touchedCount,
         injectedChars: injectedContext.length,
       });
