@@ -60,6 +60,18 @@ export async function handleMessage({ message, cleanedContent, engine, queue, lo
         return true;
       });
 
+      log("memories_selected", {
+        runId,
+        memories: combined.map((m) => ({
+          id: m.id,
+          kind: m.kind,
+          last_used_at: m.last_used_at ?? null,
+          created_at: m.created_at ?? null,
+          salience: m.salience ?? null,
+          preview: (m.content || "").slice(0, 80),
+        })),
+      });
+
       // 2.1) touch das memórias efectivamente injectadas
       let touchedCount = 0;
       try {
