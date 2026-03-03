@@ -24,22 +24,46 @@ export async function handleMessage({ message, cleanedContent, engine, queue, lo
       threadId = sessionsRepo.getThreadId(channelId);
       thread = engine.getThread(threadId);
 
-      // 1) retrieval mínimo
-      let memories = [];
+      // 1) prefs always-on + retrieval FTS
+      let prefs = [];
       try {
-        memories = memoriesRepo?.searchMemories?.({
-          channelId: message.channelId,
-          query: cleanedContent,
-          limit: 6,
-        }) ?? [];
+        prefs =
+          memoriesRepo?.getMemoriesByKind?.({
+            channelId,
+            kind: "prefs",
+            limit: 6,
+          }) ?? [];
       } catch (e) {
-        log?.("memories_search_error", { runId, err: e?.message || String(e) });
-        memories = [];
+        log?.("prefs_fetch_error", { runId, err: e?.message || String(e) });
+        prefs = [];
       }
 
-      // 2) construir contexto curto
-      const memoryLines = (memories || [])
-        .slice(0, 6)
+      let retrieved = [];
+      try {
+        retrieved =
+          memoriesRepo?.searchMemories?.({
+            channelId,
+            query: cleanedContent,
+            limit: 6,
+          }) ?? [];
+      } catch (e) {
+        log?.("memories_search_error", { runId, err: e?.message || String(e) });
+        retrieved = [];
+      }
+
+      // 2) construir contexto curto (prefs primeiro; garantir que prefs nunca são cortadas)
+      const seenIds = new Set();
+      const combined = [...prefs, ...retrieved].filter((m) => {
+        if (!m?.id) return false;
+        if (seenIds.has(m.id)) return false;
+        seenIds.add(m.id);
+        return true;
+      });
+
+      const MAX_LINES = 6;
+      const keep = Math.max(MAX_LINES, prefs.length);
+      const memoryLines = combined
+        .slice(0, keep)
         .map((m) => `- ${m.content}`)
         .join("\n");
 
@@ -47,14 +71,15 @@ export async function handleMessage({ message, cleanedContent, engine, queue, lo
         ? `Perfil do utilizador deste canal (notas internas). Considera isto como verdadeiro para este canal, mas não inventes detalhes além do que está aqui:\n${memoryLines}\n\n`
         : "";
 
-      // 3) chamar o motor com contexto + input
-      const prompt = `${injectedContext}${cleanedContent}`;
-
       log("memories_injected", {
         runId,
-        memoriesCount: memories?.length ?? 0,
+        prefsCount: prefs?.length ?? 0,
+        retrievedCount: retrieved?.length ?? 0,
         injectedChars: injectedContext.length,
       });
+
+      // 3) chamar o motor com contexto + input
+      const prompt = `${injectedContext}${cleanedContent}`;
 
       const turn = await thread.run(prompt);
 

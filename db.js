@@ -114,3 +114,24 @@ export function searchMemories({ channelId, query, limit = 6 }) {
     LIMIT ?
   `).all(ftsQuery, channelId, limit);
 }
+
+export function getMemoriesByKind({ channelId, kind, limit = 10 }) {
+  return db
+    .prepare(
+      `
+      SELECT
+        id,
+        channel_id,
+        kind,
+        content,
+        created_at,
+        last_used_at,
+        salience
+      FROM memories
+      WHERE channel_id = ? AND kind = ?
+      ORDER BY created_at DESC
+      LIMIT ?
+    `
+    )
+    .all(channelId, kind, limit);
+}
