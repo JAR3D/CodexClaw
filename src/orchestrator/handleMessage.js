@@ -60,6 +60,17 @@ export async function handleMessage({ message, cleanedContent, engine, queue, lo
         return true;
       });
 
+      // 2.1) touch das memórias efectivamente injectadas
+      let touchedCount = 0;
+      try {
+        if (combined.length > 0 && memoriesRepo?.touchMemories) {
+          const ids = combined.map((m) => m.id).filter(Boolean);
+          touchedCount = memoriesRepo.touchMemories({ ids }) ?? 0;
+        }
+      } catch (e) {
+        log?.("memories_touch_error", { runId, err: e?.message || String(e) });
+      }
+
       const MAX_LINES = 6;
       const keep = Math.max(MAX_LINES, prefs.length);
       const memoryLines = combined
@@ -75,6 +86,7 @@ export async function handleMessage({ message, cleanedContent, engine, queue, lo
         runId,
         prefsCount: prefs?.length ?? 0,
         retrievedCount: retrieved?.length ?? 0,
+        touchedCount,
         injectedChars: injectedContext.length,
       });
 

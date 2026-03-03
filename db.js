@@ -135,3 +135,27 @@ export function getMemoriesByKind({ channelId, kind, limit = 10 }) {
     )
     .all(channelId, kind, limit);
 }
+
+export function touchMemories({ ids }) {
+  const list = Array.isArray(ids) ? ids.filter(Boolean) : [];
+  if (list.length === 0) return 0;
+
+  const now = Math.floor(Date.now() / 1000);
+
+  const stmt = db.prepare(`
+    UPDATE memories
+    SET last_used_at = ?
+    WHERE id = ?
+  `);
+
+  const tx = db.transaction((memoryIds) => {
+    let updated = 0;
+    for (const id of memoryIds) {
+      const info = stmt.run(now, id);
+      updated += info.changes || 0;
+    }
+    return updated;
+  });
+
+  return tx(list);
+}
