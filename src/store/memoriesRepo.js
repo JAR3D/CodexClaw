@@ -3,6 +3,7 @@ import {
   searchMemories as dbSearchMemories,
   getMemoriesByKind,
   touchMemories,
+  deleteMemory,
 } from "../../db.js";
 
 function rankMemories(rows, { limit = 6 }) {
@@ -36,6 +37,7 @@ export function createMemoriesRepo() {
     addMemory,
     getMemoriesByKind,
     touchMemories,
+    deleteMemory,
 
     searchMemories: ({ channelId, query, limit = 6 }) => {
       // oversample para ter margem de ranking

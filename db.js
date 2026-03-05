@@ -173,3 +173,14 @@ export function touchMemories({ ids }) {
 
   return tx(list);
 }
+
+export function deleteMemory({ channelId, id }) {
+  const memId = Number(id);
+  if (!Number.isInteger(memId) || memId <= 0) return 0;
+
+  const info = db
+    .prepare(`DELETE FROM memories WHERE id = ? AND channel_id = ?`)
+    .run(memId, channelId);
+
+  return info.changes || 0;
+}

@@ -22,6 +22,20 @@ export async function handleMessage({ message, cleanedContent, engine, queue, lo
     try {
       await message.channel.sendTyping();
 
+      // COMMAND: mem rm <id>
+      const memRmMatch = cleanedContent.match(/^mem\s+rm\s+(\d+)$/i);
+      if (memRmMatch) {
+        const id = parseInt(memRmMatch[1], 10);
+        const changes = memoriesRepo.deleteMemory({ channelId, id });
+
+        if (changes > 0) {
+          await message.reply(`🗑️ Memória removida #${id}`);
+        } else {
+          await message.reply(`ℹ️ Não encontrei a memória #${id} neste canal.`);
+        }
+        return;
+      }
+
       // COMMAND: mem ls [kind] [n]
       // exemplos:
       //   mem ls
