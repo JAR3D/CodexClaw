@@ -123,7 +123,7 @@ export function searchMemories({ channelId, query, limit = 6 }) {
     JOIN memories m ON m.id = memories_fts.rowid
     WHERE memories_fts MATCH ?
       AND m.channel_id = ?
-      AND m.kind != 'prefs'
+      AND m.kind IN ('note','fact')
     ORDER BY score
     LIMIT ?
   `).all(ftsQuery, channelId, limit);
