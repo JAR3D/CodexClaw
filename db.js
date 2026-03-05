@@ -184,3 +184,17 @@ export function deleteMemory({ channelId, id }) {
 
   return info.changes || 0;
 }
+
+export function setMemorySalience({ channelId, id, salience }) {
+  const memId = Number(id);
+  if (!Number.isInteger(memId) || memId <= 0) return 0;
+
+  const s = Number(salience);
+  if (!Number.isFinite(s)) return 0;
+
+  const info = db
+    .prepare(`UPDATE memories SET salience = ? WHERE id = ? AND channel_id = ?`)
+    .run(s, memId, channelId);
+
+  return info.changes || 0;
+}

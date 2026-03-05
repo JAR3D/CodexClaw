@@ -22,6 +22,23 @@ export async function handleMessage({ message, cleanedContent, engine, queue, lo
     try {
       await message.channel.sendTyping();
 
+      // COMMAND: mem pin <id> [salience]
+      // ex: mem pin 12
+      // ex: mem pin 12 3.0
+      const memPinMatch = cleanedContent.match(/^mem\s+pin\s+(\d+)(?:\s+([0-9]+(?:\.[0-9]+)?))?$/i);
+      if (memPinMatch) {
+        const id = parseInt(memPinMatch[1], 10);
+        const salience = memPinMatch[2] ? parseFloat(memPinMatch[2]) : 3.0;
+
+        const changes = memoriesRepo.setMemorySalience({ channelId, id, salience });
+        if (changes > 0) {
+          await message.reply(`📌 Salience atualizado #${id} → ${salience}`);
+        } else {
+          await message.reply(`ℹ️ Não consegui atualizar a memória #${id} neste canal.`);
+        }
+        return;
+      }
+
       // COMMAND: mem rm <id>
       const memRmMatch = cleanedContent.match(/^mem\s+rm\s+(\d+)$/i);
       if (memRmMatch) {
