@@ -22,6 +22,21 @@ export async function handleMessage({ message, cleanedContent, engine, queue, lo
     try {
       await message.channel.sendTyping();
 
+      // COMMAND: mem (guardar memória manualmente)
+      // formato: "mem <kind> <conteúdo>"
+      const memMatch = cleanedContent.match(/^mem\s+(prefs|fact|note|task)\s+(.+)$/i);
+      if (memMatch) {
+        const kind = memMatch[1].toLowerCase();
+        const content = memMatch[2].trim();
+
+        const id = memoriesRepo.addMemory({ channelId, kind, content, salience: 1.0 });
+
+        log("memory_added", { runId, channelId, kind, id });
+
+        await message.reply(`✅ Memória guardada (${kind}) #${id}`);
+        return;
+      }
+
       threadId = sessionsRepo.getThreadId(channelId);
       thread = engine.getThread(threadId);
 
