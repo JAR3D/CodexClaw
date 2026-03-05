@@ -62,12 +62,24 @@ db.exec(`
 `);
 
 export function addMemory({ channelId, kind = "note", content, salience = 1.0 }) {
+  const allowed = new Set(["prefs", "note", "fact", "task"]);
+
+  const k = String(kind || "note").trim().toLowerCase();
+  const finalKind = allowed.has(k) ? k : "note";
+
+  const text = String(content || "").trim();
+  if (!text) {
+    throw new Error("addMemory: content is required");
+  }
+
+  const s = Number.isFinite(Number(salience)) ? Number(salience) : 1.0;
+
   const stmt = db.prepare(`
     INSERT INTO memories (channel_id, kind, content, salience)
     VALUES (?, ?, ?, ?)
   `);
 
-  const info = stmt.run(channelId, kind, content, salience);
+  const info = stmt.run(channelId, finalKind, text, s);
   return info.lastInsertRowid;
 }
 
@@ -101,7 +113,7 @@ export function searchMemories({ channelId, query, limit = 6 }) {
     return [];
   }
 
-  // FTS5 query segura: "token" AND "token2" ...
+  // FTS5 query segura: "token" OR "token2" ...
   const ftsQuery = tokens.map((t) => `"${t.replace(/"/g, '""')}"`).join(" OR ");
 
   return db.prepare(`
