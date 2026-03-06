@@ -59,6 +59,7 @@ export function buildPromptMemoriesContext({ channelId, cleanedContent, memories
             last_used_at: m.last_used_at ?? null,
             created_at: m.created_at ?? null,
             salience: m.salience ?? null,
+            scoreDebug: m._scoreDebug ?? null,
             preview: (m.content || "").slice(0, 80),
         })),
     });

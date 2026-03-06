@@ -26,12 +26,23 @@ function rankMemories(rows, { limit = 6 }) {
     // pesos simples (ajustamos depois)
     const finalScore = textRelevance + 0.6 * recency + 0.2 * salience;
 
-    return { ...m, _finalScore: finalScore };
+    return {
+      ...m,
+      _scoreDebug: {
+        bm25: bm25Score,
+        textRelevance,
+        recency,
+        salience,
+        finalScore,
+        ageDays,
+        usedTimestamp: ts,
+      },
+    };
   });
 
-  scored.sort((a, b) => b._finalScore - a._finalScore);
+  scored.sort((a, b) => b._scoreDebug.finalScore - a._scoreDebug.finalScore);
 
-  return scored.slice(0, limit).map(({ _finalScore, ...rest }) => rest);
+  return scored.slice(0, limit);
 }
 
 export function createMemoriesRepo() {
