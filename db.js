@@ -198,3 +198,21 @@ export function setMemorySalience({ channelId, id, salience }) {
 
   return info.changes || 0;
 }
+
+export function getMemoryById({ channelId, id }) {
+  const memId = Number(id);
+  if (!Number.isInteger(memId) || memId <= 0) return null;
+
+  return db.prepare(`
+    SELECT
+      id,
+      channel_id,
+      kind,
+      content,
+      salience,
+      created_at,
+      last_used_at
+    FROM memories
+    WHERE id = ? AND channel_id = ?
+  `).get(memId, channelId);
+}

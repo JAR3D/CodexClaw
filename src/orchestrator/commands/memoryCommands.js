@@ -6,6 +6,30 @@ export async function tryHandleMemoryCommand({
   log,
   runId,
 }) {
+    // COMMAND: mem show <id>
+    // ex: mem show 1
+    const memShowMatch = cleanedContent.match(/^mem\s+show\s+(\d+)$/i);
+    if (memShowMatch) {
+        const id = parseInt(memShowMatch[1], 10);
+
+        const memory = memoriesRepo.getMemoryById({ channelId, id });
+
+        if (!memory) {
+            await message.reply(`ℹ️ Não encontrei a memória #${id} neste canal.`);
+            return true;
+        }
+
+        await message.reply(
+            `🧠 Memória #${memory.id}\n` +
+            `kind: ${memory.kind}\n` +
+            `salience: ${memory.salience}\n` +
+            `created_at: ${memory.created_at}\n` +
+            `last_used_at: ${memory.last_used_at ?? "-"}\n\n` +
+            `${memory.content}`
+        );
+        return true;
+    }
+
     // COMMAND: mem pin <id> [salience]
     // ex: mem pin 12
     // ex: mem pin 12 3.0
