@@ -23,7 +23,14 @@ export async function handleMessage({ message, cleanedContent, engine, queue, lo
     try {
       await message.channel.sendTyping();
 
-      const handled = tryHandleMemoryCommand(cleanedContent, channelId, message, memoriesRepo, log, runId);
+      const handled = tryHandleMemoryCommand({
+        cleanedContent, 
+        channelId, 
+        message, 
+        memoriesRepo, 
+        log, 
+        runId
+      });
       if (handled) return;
 
       threadId = sessionsRepo.getThreadId(channelId);
