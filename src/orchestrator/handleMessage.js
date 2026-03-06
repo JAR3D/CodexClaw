@@ -23,7 +23,7 @@ export async function handleMessage({ message, cleanedContent, engine, queue, lo
     try {
       await message.channel.sendTyping();
 
-      const handled = tryHandleMemoryCommand({
+      const handled = await tryHandleMemoryCommand({
         cleanedContent, 
         channelId, 
         message, 
