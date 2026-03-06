@@ -216,3 +216,17 @@ export function getMemoryById({ channelId, id }) {
     WHERE id = ? AND channel_id = ?
   `).get(memId, channelId);
 }
+
+export function updateMemoryContent({ channelId, id, content }) {
+  const memId = Number(id);
+  if (!Number.isInteger(memId) || memId <= 0) return 0;
+
+  const text = String(content || "").trim();
+  if (!text) return 0;
+
+  const info = db
+    .prepare(`UPDATE memories SET content = ? WHERE id = ? AND channel_id = ?`)
+    .run(text, memId, channelId);
+
+  return info.changes || 0;
+}

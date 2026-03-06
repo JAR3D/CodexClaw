@@ -6,6 +6,7 @@ import {
   deleteMemory,
   setMemorySalience,
   getMemoryById,
+  updateMemoryContent,
 } from "../../db.js";
 
 function rankMemories(rows, { limit = 6 }) {
@@ -53,6 +54,7 @@ export function createMemoriesRepo() {
     deleteMemory,
     setMemorySalience,
     getMemoryById,
+    updateMemoryContent,
 
     searchMemories: ({ channelId, query, limit = 6 }) => {
       // oversample para ter margem de ranking

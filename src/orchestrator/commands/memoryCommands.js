@@ -6,6 +6,22 @@ export async function tryHandleMemoryCommand({
   log,
   runId,
 }) {
+    // COMMAND: mem edit <id> <novo conteúdo>
+    const memEditMatch = cleanedContent.match(/^mem\s+edit\s+(\d+)\s+([\s\S]+)$/i);
+    if (memEditMatch) {
+        const id = parseInt(memEditMatch[1], 10);
+        const content = memEditMatch[2].trim();
+
+        const changes = memoriesRepo.updateMemoryContent({ channelId, id, content });
+
+        if (changes > 0) {
+            await message.reply(`✏️ Memória #${id} atualizada.`);
+        } else {
+            await message.reply(`ℹ️ Não consegui atualizar a memória #${id} neste canal.`);
+        }
+        return true;
+    }
+
     // COMMAND: mem show <id>
     // ex: mem show 1
     const memShowMatch = cleanedContent.match(/^mem\s+show\s+(\d+)$/i);
