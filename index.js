@@ -25,6 +25,7 @@ process.on("unhandledRejection", (reason) => {
   log("unhandled_rejection", {
     error: reason?.message || String(reason),
     reasonType: typeof reason,
+    stack: reason?.stack || null,
   });
 });
 
