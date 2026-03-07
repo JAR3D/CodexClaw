@@ -97,7 +97,16 @@ client.on(Events.MessageCreate, async (message) => {
     })
   } catch (err) {
     console.error("Erro no handler (outer):", err);
-    await message.reply("⚠️ Deu erro do meu lado. Vê os logs na VPS.");
+    
+    try {
+      await message.reply("⚠️ Deu erro do meu lado. Vê os logs na VPS.");
+    } catch (replyErr) {
+      log("outer_error_reply_failed", {
+        channelId: message?.channel?.id,
+        messageId: message?.id,
+        error: replyErr?.message || String(replyErr),
+      });
+    }
   }
 });
 
