@@ -4,14 +4,6 @@ import { acquireProcessLock } from "./src/runtime/processLock.js";
 
 acquireProcessLock();
 
-process.on("uncaughtException", (err) => {
-  console.error("uncaughtException:", err);
-});
-
-process.on("unhandledRejection", (reason) => {
-  console.error("unhandledRejection:", reason);
-});
-
 import { Client, GatewayIntentBits, Events } from "discord.js";
 import { getCodexEngine } from "./src/engine/codexEngine.js";
 import { log, requireEnv, requireDiscordSnowflake } from "./lib.js";
@@ -21,6 +13,19 @@ import { createChannelQueue } from "./src/policies/concurrency.js";
 import { handleMessage } from "./src/orchestrator/handleMessage.js";
 import { createSessionsRepo } from "./src/store/sessionsRepo.js";
 import { createMemoriesRepo } from "./src/store/memoriesRepo.js";
+
+process.on("uncaughtException", (err) => {
+  log("uncaught_exception", {
+    error: err?.message || String(err),
+  });
+});
+
+process.on("unhandledRejection", (reason) => {
+  log("unhandled_rejection", {
+    error: reason?.message || String(reason),
+    reasonType: typeof reason,
+  });
+});
 
 const client = new Client({
   intents: [
@@ -37,7 +42,10 @@ const allowedUserId = requireDiscordSnowflake("ALLOWED_USER_ID", ALLOWED_USER_ID
 const allowedChannelId = requireDiscordSnowflake("ALLOWED_CHANNEL_ID", ALLOWED_CHANNEL_ID);
 
 client.once(Events.ClientReady, () => {
-  console.log(`✅ Logged in as ${client.user.tag}`);
+  log("discord_ready", {
+    botUserId: client.user?.id,
+    botTag: client.user?.tag,
+  });
 });
 
 const engine = getCodexEngine();
@@ -96,7 +104,11 @@ client.on(Events.MessageCreate, async (message) => {
       memoriesRepo,
     })
   } catch (err) {
-    console.error("Erro no handler (outer):", err);
+    log("outer_handler_error", {
+      channelId: message?.channel?.id,
+      messageId: message?.id,
+      error: err?.message || String(err),
+    });
     
     try {
       await message.reply("⚠️ Deu erro do meu lado. Vê os logs na VPS.");
@@ -111,6 +123,8 @@ client.on(Events.MessageCreate, async (message) => {
 });
 
 client.login(DISCORD_BOT_TOKEN).catch((err) => {
-  console.error("Falha no login do Discord:", err);
+  log("discord_login_failed", {
+    error: err?.message || String(err),
+  });
   process.exit(1);
 });
