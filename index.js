@@ -91,4 +91,7 @@ client.on(Events.MessageCreate, async (message) => {
   }
 });
 
-client.login(DISCORD_BOT_TOKEN);
+client.login(DISCORD_BOT_TOKEN).catch((err) => {
+  console.error("Falha no login do Discord:", err);
+  process.exit(1);
+});
