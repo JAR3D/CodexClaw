@@ -65,13 +65,22 @@ client.on(Events.MessageCreate, async (message) => {
       return;
     }
 
-    if (
-      !isAllowedMessage(message, {
-        allowedChannelId,
-        allowedUserId,
-        botUser: client.user,
-      })
-    ) return;
+    const allowed = isAllowedMessage(message, {
+      allowedChannelId,
+      allowedUserId,
+      botUser: client.user,
+    });
+
+    if (!allowed) {
+      log("message_ignored_not_allowed", {
+        runId,
+        channelId: message.channel?.id,
+        channelType: message.channel?.type ?? null,
+        userId: message.author?.id,
+        messageId: message.id,
+      });
+      return;
+    }
 
     // Remove o mention do texto
     const mentionRegex = new RegExp(`^<@!?${client.user.id}>\\s*`);
@@ -96,6 +105,12 @@ client.on(Events.MessageCreate, async (message) => {
     const cd = cooldown.hit(channelId);
     if (!cd.ok) {
       const waitSec = Math.max(1, Math.ceil((cd.waitMs || 0) / 1000));
+      log("message_rate_limited", {
+        runId,
+        channelId,
+        userId: message.author.id,
+        waitMs: cd.waitMs || 0,
+      });
       await message.reply(`Espera ${waitSec}s antes de fazer outro pedido 🙂`);
       return;
     }
