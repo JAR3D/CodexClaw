@@ -12,6 +12,16 @@ export async function tryHandleMemoryCommand({
         const id = parseInt(memEditMatch[1], 10);
         const content = memEditMatch[2].trim();
 
+        if (!content) {
+            await message.reply("ℹ️ Conteúdo vazio. Usa: mem edit <id> <novo conteúdo>");
+            return true;
+        }
+
+        if (content.length > 2000) {
+            await message.reply("ℹ️ Conteúdo demasiado longo (máx: 2000 caracteres).");
+            return true;
+        }
+
         const changes = memoriesRepo.updateMemoryContent({ channelId, id, content });
 
         if (changes > 0) {
@@ -53,6 +63,11 @@ export async function tryHandleMemoryCommand({
     if (memPinMatch) {
         const id = parseInt(memPinMatch[1], 10);
         const salience = memPinMatch[2] ? parseFloat(memPinMatch[2]) : 3.0;
+
+        if (!Number.isFinite(salience) || salience < 0 || salience > 10) {
+            await message.reply("ℹ️ Salience inválido. Usa um número entre 0 e 10.");
+            return true;
+        }
 
         const changes = memoriesRepo.setMemorySalience({ channelId, id, salience });
         if (changes > 0) {
@@ -103,7 +118,12 @@ export async function tryHandleMemoryCommand({
             return true;
         }
 
-        const lines = rows.map((m) => `#${m.id} [${m.kind}] ${m.content}`).join("\n");
+        const lines = rows
+            .map((m) => {
+                const preview = String(m.content || "").replace(/\s+/g, " ").trim().slice(0, 160);
+                return `#${m.id} [${m.kind}] ${preview}${m.content.length > 160 ? "..." : ""}`;
+            })
+            .join("\n");
         await message.reply(`🧠 Últimas memórias:\n${lines}`);
         return true;
     }
@@ -114,6 +134,16 @@ export async function tryHandleMemoryCommand({
     if (memMatch) {
         const kind = memMatch[1].toLowerCase();
         const content = memMatch[2].trim();
+
+        if (!content) {
+            await message.reply("ℹ️ Conteúdo vazio. Usa: mem <prefs|fact|note|task> <texto>");
+            return true;
+        }
+
+        if (content.length > 2000) {
+            await message.reply("ℹ️ Conteúdo demasiado longo (máx: 2000 caracteres).");
+            return true;
+        }
 
         const id = memoriesRepo.addMemory({ channelId, kind, content, salience: 1.0 });
 
