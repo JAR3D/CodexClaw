@@ -10,7 +10,7 @@ export function dedupeById(arr) {
     seen.add(m.id);
     return true;
   });
-};
+}
 
 export function requireEnv(name, value) {
   if (!value || !String(value).trim()) {
