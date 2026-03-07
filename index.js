@@ -1,5 +1,9 @@
 import "dotenv/config";
 
+import { acquireProcessLock } from "./processLock.js";
+
+acquireProcessLock();
+
 import { Client, GatewayIntentBits, Events } from "discord.js";
 import { getCodexEngine } from "./src/engine/codexEngine.js";
 import { log } from "./lib.js";
