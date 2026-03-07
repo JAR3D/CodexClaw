@@ -17,3 +17,15 @@ export function requireEnv(name, value) {
     throw new Error(`Falta variável obrigatória no .env: ${name}`);
   }
 }
+
+export function requireDiscordSnowflake(name, value) {
+  requireEnv(name, value);
+  const v = String(value).trim();
+
+  // Snowflake Discord: inteiro positivo longo (tipicamente 17-20 dígitos)
+  if (!/^\d{17,20}$/.test(v)) {
+    throw new Error(`Valor inválido para ${name}: esperado Discord snowflake (17-20 dígitos)`);
+  }
+
+  return v;
+}

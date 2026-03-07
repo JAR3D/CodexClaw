@@ -14,7 +14,7 @@ process.on("unhandledRejection", (reason) => {
 
 import { Client, GatewayIntentBits, Events } from "discord.js";
 import { getCodexEngine } from "./src/engine/codexEngine.js";
-import { log, requireEnv } from "./lib.js";
+import { log, requireEnv, requireDiscordSnowflake } from "./lib.js";
 import { isAllowedMessage } from "./src/policies/auth.js";
 import { createChannelCooldown } from "./src/policies/rateLimit.js";
 import { createChannelQueue } from "./src/policies/concurrency.js";
@@ -33,8 +33,8 @@ const client = new Client({
 const { DISCORD_BOT_TOKEN, ALLOWED_USER_ID, ALLOWED_CHANNEL_ID } = process.env;
 
 requireEnv("DISCORD_BOT_TOKEN", DISCORD_BOT_TOKEN);
-requireEnv("ALLOWED_USER_ID", ALLOWED_USER_ID);
-requireEnv("ALLOWED_CHANNEL_ID", ALLOWED_CHANNEL_ID);
+requireDiscordSnowflake("ALLOWED_USER_ID", ALLOWED_USER_ID);
+requireDiscordSnowflake("ALLOWED_CHANNEL_ID", ALLOWED_CHANNEL_ID);
 
 client.once(Events.ClientReady, () => {
   console.log(`✅ Logged in as ${client.user.tag}`);
