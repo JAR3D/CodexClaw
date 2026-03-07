@@ -69,6 +69,15 @@ export async function handleMessage({ message, cleanedContent, engine, queue, lo
         return;
       }
 
+      if (nonEmptyChunks.length > 8) {
+        log("large_response_detected", {
+          runId,
+          channelId,
+          chunks: nonEmptyChunks.length,
+          responseChars: safeReply.length,
+        });
+      }
+
       await message.reply(nonEmptyChunks[0]);
       for (let i = 1; i < nonEmptyChunks.length; i++) {
         await message.channel.send(nonEmptyChunks[i]);
