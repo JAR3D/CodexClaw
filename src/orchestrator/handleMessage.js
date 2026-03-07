@@ -134,7 +134,7 @@ export async function handleMessage({ message, cleanedContent, engine, queue, lo
         if (message?.channel) {
           await message.reply("⚠️ Deu erro do meu lado. Vê os logs na VPS.");
         }
-      } catch {
+      } catch (replyErr) {
         log("run_error_reply_failed", {
           runId,
           channelId,
