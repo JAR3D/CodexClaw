@@ -36,15 +36,21 @@ export async function handleMessage({ message, cleanedContent, engine, queue, lo
       threadId = sessionsRepo.getThreadId(channelId);
       thread = engine.getThread(threadId);
 
+      const retrievalQuery = cleanedContent?.trim() || message.content?.trim() || "";
+
       const { injectedContext } = buildPromptMemoriesContext({
         channelId,
-        cleanedContent,
+        cleanedContent: retrievalQuery,
         memoriesRepo,
         log,
         runId,
       });
 
-      const prompt = `${injectedContext}${cleanedContent}`;
+      const normalizedInput = String(cleanedContent || "")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      const prompt = `${injectedContext}${normalizedInput}`;
 
       const turn = await thread.run(prompt);
 
@@ -57,9 +63,15 @@ export async function handleMessage({ message, cleanedContent, engine, queue, lo
 
       const chunks = splitIntoChunks(safeReply, 1800);
 
-      await message.reply(chunks[0]);
-      for (let i = 1; i < chunks.length; i++) {
-        await message.channel.send(chunks[i]);
+      const nonEmptyChunks = chunks.filter((c) => String(c).trim().length > 0);
+      if (nonEmptyChunks.length === 0) {
+        await message.reply("(Sem resposta do Codex)");
+        return;
+      }
+
+      await message.reply(nonEmptyChunks[0]);
+      for (let i = 1; i < nonEmptyChunks.length; i++) {
+        await message.channel.send(nonEmptyChunks[i]);
       }
 
       log("run_done", {
@@ -67,7 +79,7 @@ export async function handleMessage({ message, cleanedContent, engine, queue, lo
         channelId,
         threadId: thread?._id || null,
         durationMs: Date.now() - t0,
-        responseChars: replyText.length,
+        responseChars: safeReply.length,
       });
     } catch (err) {
       log("run_error", {
