@@ -58,6 +58,8 @@ const sessionsRepo = createSessionsRepo();
 const memoriesRepo = createMemoriesRepo();
 
 client.on(Events.MessageCreate, async (message) => {
+  const runId = crypto.randomUUID();
+
   try {
     if (!client.user) {
       return;
@@ -79,8 +81,6 @@ client.on(Events.MessageCreate, async (message) => {
       await message.reply("Escreve uma mensagem depois do mention 🙂");
       return;
     }
-
-    const runId = crypto.randomUUID();
 
     log("message_received", {
       channelId: message.channel.id,
@@ -112,6 +112,7 @@ client.on(Events.MessageCreate, async (message) => {
     })
   } catch (err) {
     log("outer_handler_error", {
+      runId,
       channelId: message?.channel?.id,
       messageId: message?.id,
       error: err?.message || String(err),
@@ -121,6 +122,7 @@ client.on(Events.MessageCreate, async (message) => {
       await message.reply("⚠️ Deu erro do meu lado. Vê os logs na VPS.");
     } catch (replyErr) {
       log("outer_error_reply_failed", {
+        runId,
         channelId: message?.channel?.id,
         messageId: message?.id,
         error: replyErr?.message || String(replyErr),
@@ -132,6 +134,9 @@ client.on(Events.MessageCreate, async (message) => {
 client.login(DISCORD_BOT_TOKEN).catch((err) => {
   log("discord_login_failed", {
     error: err?.message || String(err),
+    hasToken: Boolean(DISCORD_BOT_TOKEN),
+    allowedChannelId,
+    allowedUserId,
   });
   process.exit(1);
 });
