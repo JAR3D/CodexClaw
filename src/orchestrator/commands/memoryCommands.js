@@ -49,12 +49,17 @@ export async function tryHandleMemoryCommand({
         const preview = fullContent.slice(0, 1500);
         const truncated = fullContent.length > 1500 ? "\n\n... (truncated)" : "";
 
+        const createdAtIso = new Date(memory.created_at * 1000).toISOString();
+        const lastUsedIso = memory.last_used_at
+            ? new Date(memory.last_used_at * 1000).toISOString()
+            : "-";
+
         await message.reply(
             `🧠 Memória #${memory.id}\n` +
             `kind: ${memory.kind}\n` +
             `salience: ${memory.salience}\n` +
-            `created_at: ${memory.created_at}\n` +
-            `last_used_at: ${memory.last_used_at ?? "-"}\n\n` +
+            `created_at: ${memory.created_at} (${createdAtIso})\n` +
+            `last_used_at: ${memory.last_used_at ?? "-"} (${lastUsedIso})\n\n` +
             `${preview}${truncated}`
         );
         return true;
@@ -129,7 +134,10 @@ export async function tryHandleMemoryCommand({
                 return `#${m.id} [${m.kind}] ${preview}${raw.length > 160 ? "..." : ""}`;
             })
             .join("\n");
-        await message.reply(`🧠 Últimas memórias:\n${lines}`);
+
+        const header = kind ? `🧠 Memórias (${kind}):` : "🧠 Últimas memórias:";
+        await message.reply(`${header}\n${lines}`);
+
         return true;
     }
 
