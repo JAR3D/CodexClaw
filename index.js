@@ -81,7 +81,8 @@ client.on(Events.MessageCreate, async (message) => {
 
     const cd = cooldown.hit(channelId);
     if (!cd.ok) {
-      await message.reply("Espera 3s antes de fazer outro pedido 🙂");
+      const waitSec = Math.max(1, Math.ceil((cd.waitMs || 0) / 1000));
+      await message.reply(`Espera ${waitSec}s antes de fazer outro pedido 🙂`);
       return;
     }
 
