@@ -124,8 +124,9 @@ export async function tryHandleMemoryCommand({
 
         const lines = rows
             .map((m) => {
-                const preview = String(m.content || "").replace(/\s+/g, " ").trim().slice(0, 160);
-                return `#${m.id} [${m.kind}] ${preview}${m.content.length > 160 ? "..." : ""}`;
+                const raw = String(m.content || "");
+                const preview = raw.replace(/\s+/g, " ").trim().slice(0, 160);
+                return `#${m.id} [${m.kind}] ${preview}${raw.length > 160 ? "..." : ""}`;
             })
             .join("\n");
         await message.reply(`🧠 Últimas memórias:\n${lines}`);
