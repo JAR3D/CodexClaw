@@ -56,7 +56,9 @@ export async function handleMessage({ message, cleanedContent, engine, queue, lo
 
       const prompt = `${injectedContext}${normalizedInput}`;
 
+      const tRun0 = Date.now();
       const turn = await thread.run(prompt);
+      const engineRunMs = Date.now() - tRun0;
 
       if (!threadId && thread._id) {
         sessionsRepo.setThreadId(channelId, thread._id);
@@ -94,6 +96,8 @@ export async function handleMessage({ message, cleanedContent, engine, queue, lo
         durationMs: Date.now() - t0,
         responseChars: safeReply.length,
         memoryBuildMs,
+        engineRunMs,
+        promptChars: prompt.length,
       });
     } catch (err) {
       log("run_error", {
