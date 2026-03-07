@@ -45,13 +45,17 @@ export async function tryHandleMemoryCommand({
             return true;
         }
 
+        const fullContent = String(memory.content || "").trim();
+        const preview = fullContent.slice(0, 1500);
+        const truncated = fullContent.length > 1500 ? "\n\n... (truncated)" : "";
+
         await message.reply(
             `🧠 Memória #${memory.id}\n` +
             `kind: ${memory.kind}\n` +
             `salience: ${memory.salience}\n` +
             `created_at: ${memory.created_at}\n` +
             `last_used_at: ${memory.last_used_at ?? "-"}\n\n` +
-            `${memory.content}`
+            `${preview}${truncated}`
         );
         return true;
     }
