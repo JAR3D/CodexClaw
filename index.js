@@ -4,6 +4,14 @@ import { acquireProcessLock } from "./processLock.js";
 
 acquireProcessLock();
 
+process.on("uncaughtException", (err) => {
+  console.error("uncaughtException:", err);
+});
+
+process.on("unhandledRejection", (reason) => {
+  console.error("unhandledRejection:", reason);
+});
+
 import { Client, GatewayIntentBits, Events } from "discord.js";
 import { getCodexEngine } from "./src/engine/codexEngine.js";
 import { log, requireEnv } from "./lib.js";
