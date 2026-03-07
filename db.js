@@ -92,7 +92,7 @@ export function searchMemories({ channelId, query, limit = 6 }) {
       FROM memories
       WHERE channel_id = ?
         AND kind != 'prefs'
-      ORDER BY created_at DESC
+      ORDER BY created_at DESC, id DESC
       LIMIT ?
     `).all(channelId, limit);
   }
@@ -143,7 +143,7 @@ export function getMemoriesByKind({ channelId, kind, limit = 10 }) {
         salience
       FROM memories
       WHERE channel_id = ? AND kind = ?
-      ORDER BY created_at DESC
+      ORDER BY created_at DESC, id DESC
       LIMIT ?
     `
     )
