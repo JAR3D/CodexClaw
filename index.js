@@ -48,6 +48,10 @@ const memoriesRepo = createMemoriesRepo();
 
 client.on(Events.MessageCreate, async (message) => {
   try {
+    if (!client.user) {
+      return;
+    }
+
     if (
       !isAllowedMessage(message, {
         allowedChannelId: ALLOWED_CHANNEL_ID,
