@@ -1,6 +1,6 @@
 import "dotenv/config";
 
-import { acquireProcessLock } from "./processLock.js";
+import { acquireProcessLock } from "./src/runtime/processLock.js";
 
 acquireProcessLock();
 
