@@ -69,7 +69,12 @@ client.on(Events.MessageCreate, async (message) => {
       return;
     }
 
-    console.log(`Mensagem recebida: ${cleanedContent}`);
+    log("message_received", {
+      channelId: message.channel.id,
+      userId: message.author.id,
+      messageId: message.id,
+      chars: cleanedContent.length,
+    });
 
     // Sessão por canal (podes mudar para sessão por user mais tarde)
     const channelId = message.channel.id;
