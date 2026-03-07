@@ -36,6 +36,14 @@ export async function handleMessage({ message, cleanedContent, engine, queue, lo
       threadId = sessionsRepo.getThreadId(channelId);
       thread = engine.getThread(threadId);
 
+      if (threadId) {
+        log("session_thread_reused", {
+          runId,
+          channelId,
+          threadId,
+        });
+      }
+
       const retrievalQuery = cleanedContent?.trim() || message.content?.trim() || "";
 
       const tMem0 = Date.now();
@@ -60,8 +68,22 @@ export async function handleMessage({ message, cleanedContent, engine, queue, lo
       const turn = await thread.run(prompt);
       const engineRunMs = Date.now() - tRun0;
 
+      if (threadId && thread?._id && thread._id !== threadId) {
+        log("session_thread_mismatch", {
+          runId,
+          channelId,
+          expectedThreadId: threadId,
+          actualThreadId: thread._id,
+        });
+      }
+
       if (!threadId && thread._id) {
         sessionsRepo.setThreadId(channelId, thread._id);
+        log("session_thread_created", {
+          runId,
+          channelId,
+          threadId: thread._id,
+        });
       }
 
       const replyText = (turn.finalResponse || "").trim();
