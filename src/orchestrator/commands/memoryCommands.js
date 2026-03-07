@@ -7,7 +7,7 @@ export async function tryHandleMemoryCommand({
   runId,
 }) {
     // COMMAND: mem edit <id> <novo conteúdo>
-    const memEditMatch = cleanedContent.match(/^mem\s+edit\s+(\d+)\s+([\s\S]+)$/i);
+    const memEditMatch = cleanedContent.match(/^mem\s+edit\s+(\d+)\s+(.+)$/i);
     if (memEditMatch) {
         const id = parseInt(memEditMatch[1], 10);
         const content = memEditMatch[2].trim();
