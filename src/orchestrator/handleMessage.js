@@ -120,6 +120,7 @@ export async function handleMessage({ message, cleanedContent, engine, queue, lo
         memoryBuildMs,
         engineRunMs,
         promptChars: prompt.length,
+        chunksSent: nonEmptyChunks.length,
       });
     } catch (err) {
       log("run_error", {
