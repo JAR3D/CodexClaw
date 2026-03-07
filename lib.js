@@ -11,3 +11,9 @@ export function dedupeById(arr) {
     return true;
   });
 };
+
+export function requireEnv(name, value) {
+  if (!value || !String(value).trim()) {
+    throw new Error(`Falta variável obrigatória no .env: ${name}`);
+  }
+}
