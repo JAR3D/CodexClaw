@@ -1,14 +1,20 @@
-import crypto from "node:crypto";
-
 import { splitIntoChunks } from "../policies/chunking.js";
 import { tryHandleMemoryCommand } from "./commands/memoryCommands.js";
 import { buildPromptMemoriesContext } from "./promptMemories.js";
 
-export async function handleMessage({ message, cleanedContent, engine, queue, log, sessionsRepo, memoriesRepo }) {
+export async function handleMessage({ 
+  message, 
+  cleanedContent, 
+  engine, 
+  queue, 
+  log, 
+  sessionsRepo, 
+  memoriesRepo, 
+  runId 
+}) {
   const channelId = message.channel.id;
 
   await queue.enqueue(channelId, async () => {
-    const runId = crypto.randomUUID();
     const t0 = Date.now();
     let threadId = null;
     let thread = null;

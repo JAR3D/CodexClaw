@@ -1,4 +1,5 @@
 import "dotenv/config";
+import crypto from "node:crypto";
 
 import { acquireProcessLock } from "./src/runtime/processLock.js";
 
@@ -79,11 +80,14 @@ client.on(Events.MessageCreate, async (message) => {
       return;
     }
 
+    const runId = crypto.randomUUID();
+
     log("message_received", {
       channelId: message.channel.id,
       userId: message.author.id,
       messageId: message.id,
       chars: cleanedContent.length,
+      runId,
     });
 
     // Sessão por canal (podes mudar para sessão por user mais tarde)
@@ -104,6 +108,7 @@ client.on(Events.MessageCreate, async (message) => {
       log,
       sessionsRepo,
       memoriesRepo,
+      runId,
     })
   } catch (err) {
     log("outer_handler_error", {
