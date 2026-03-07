@@ -58,7 +58,7 @@ export async function handleMessage({ message, cleanedContent, engine, queue, lo
 
       const memoryBuildMs = Date.now() - tMem0;
 
-      const normalizedInput = String(cleanedContent || "")
+      const normalizedInput = String(retrievalQuery || "")
         .replace(/\s+/g, " ")
         .trim();
 
