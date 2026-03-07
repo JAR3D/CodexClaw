@@ -38,6 +38,8 @@ export async function handleMessage({ message, cleanedContent, engine, queue, lo
 
       const retrievalQuery = cleanedContent?.trim() || message.content?.trim() || "";
 
+      const tMem0 = Date.now();
+
       const { injectedContext } = buildPromptMemoriesContext({
         channelId,
         cleanedContent: retrievalQuery,
@@ -45,6 +47,8 @@ export async function handleMessage({ message, cleanedContent, engine, queue, lo
         log,
         runId,
       });
+
+      const memoryBuildMs = Date.now() - tMem0;
 
       const normalizedInput = String(cleanedContent || "")
         .replace(/\s+/g, " ")
@@ -89,6 +93,7 @@ export async function handleMessage({ message, cleanedContent, engine, queue, lo
         threadId: thread?._id || null,
         durationMs: Date.now() - t0,
         responseChars: safeReply.length,
+        memoryBuildMs,
       });
     } catch (err) {
       log("run_error", {
