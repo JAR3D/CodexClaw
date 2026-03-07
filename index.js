@@ -17,6 +17,7 @@ import { createMemoriesRepo } from "./src/store/memoriesRepo.js";
 process.on("uncaughtException", (err) => {
   log("uncaught_exception", {
     error: err?.message || String(err),
+    stack: err?.stack || null,
   });
 });
 
