@@ -24,6 +24,7 @@ export async function handleMessage({
       channelId,
       userId: message.author.id,
       messageId: message.id,
+      isMemoryCommand: /^mem\b/i.test(cleanedContent || ""),
     });
 
     try {
@@ -37,7 +38,16 @@ export async function handleMessage({
         log, 
         runId
       });
-      if (handled) return;
+
+      if (handled) {
+        log("memory_command_handled", {
+          runId,
+          channelId,
+          userId: message.author.id,
+          messageId: message.id,
+        });
+        return;
+      }
 
       threadId = sessionsRepo.getThreadId(channelId);
       thread = engine.getThread(threadId);

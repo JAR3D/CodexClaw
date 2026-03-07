@@ -87,16 +87,23 @@ client.on(Events.MessageCreate, async (message) => {
     const cleanedContent = message.content.replace(mentionRegex, "").trim();
 
     if (!cleanedContent) {
+      log("message_empty_after_mention", {
+        runId,
+        channelId: message.channel.id,
+        userId: message.author.id,
+        messageId: message.id,
+      });
       await message.reply("Escreve uma mensagem depois do mention 🙂");
       return;
     }
 
     log("message_received", {
+      runId,
       channelId: message.channel.id,
       userId: message.author.id,
       messageId: message.id,
       chars: cleanedContent.length,
-      runId,
+      isMemoryCommand: /^mem\b/i.test(cleanedContent),
     });
 
     // Sessão por canal (podes mudar para sessão por user mais tarde)
