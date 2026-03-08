@@ -166,5 +166,30 @@ export async function tryHandleMemoryCommand({
         return true;
     }
 
+    if (/^mem\b/i.test(cleanedContent || "")) {
+        log("memory_command_invalid", {
+            runId,
+            channelId,
+            userId: message.author.id,
+            messageId: message.id,
+            command: String(cleanedContent || "").trim(),
+        });
+
+        await message.reply(
+            "ℹ️ Comando de memória inválido.\n" +
+            "Usa:\n" +
+            "- mem prefs <texto>\n" +
+            "- mem fact <texto>\n" +
+            "- mem note <texto>\n" +
+            "- mem task <texto>\n" +
+            "- mem ls [kind] [n]\n" +
+            "- mem show <id>\n" +
+            "- mem rm <id>\n" +
+            "- mem pin <id> [salience]\n" +
+            "- mem edit <id> <novo conteúdo>"
+        );
+        return true;
+    }
+
     return false;
 }
