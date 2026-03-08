@@ -10,7 +10,11 @@ export function buildPromptMemoriesContext({ channelId, cleanedContent, memories
             limit: 6,
         }) ?? [];
     } catch (e) {
-        log?.("prefs_fetch_error", { runId, err: e?.message || String(e) });
+        log?.("prefs_fetch_error", {
+            runId,
+            channelId,
+            err: e?.message || String(e),
+        });
         prefs = [];
     }
 
@@ -22,7 +26,11 @@ export function buildPromptMemoriesContext({ channelId, cleanedContent, memories
             limit: 6,
         }) ?? [];
     } catch (e) {
-        log?.("memories_search_error", { runId, err: e?.message || String(e) });
+        log?.("memories_search_error", {
+            runId,
+            channelId,
+            err: e?.message || String(e),
+        });
         retrieved = [];
     }
 
@@ -47,7 +55,11 @@ export function buildPromptMemoriesContext({ channelId, cleanedContent, memories
             touchedCount = memoriesRepo.touchMemories({ ids }) ?? 0;
         }
     } catch (e) {
-        log?.("memories_touch_error", { runId, err: e?.message || String(e) });
+        log?.("memories_touch_error", {
+            runId,
+            channelId,
+            err: e?.message || String(e),
+        });
     }
 
     // 2.2) logs de debugging (ordem real injectada)
