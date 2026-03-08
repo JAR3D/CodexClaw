@@ -65,6 +65,7 @@ export function buildPromptMemoriesContext({ channelId, cleanedContent, memories
     // 2.2) logs de debugging (ordem real injectada)
     log("memories_selected", {
         runId,
+        channelId,
         memories: injectedMemories.map((m) => ({
             id: m.id,
             kind: m.kind,
@@ -86,6 +87,7 @@ export function buildPromptMemoriesContext({ channelId, cleanedContent, memories
 
     log("memories_injected", {
         runId,
+        channelId,
         prefsCount: prefsUnique.length,
         retrievedCount: factsUnique.length,
         injectedCount: injectedMemories.length,
