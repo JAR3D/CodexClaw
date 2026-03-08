@@ -4,7 +4,9 @@ export function createChannelQueue() {
   function enqueue(channelId, task) {
     const prev = channelQueues.get(channelId) || Promise.resolve();
 
-    const next = prev.then(task);
+    const next = prev
+      .catch(() => {})
+      .then(task);
 
     channelQueues.set(
       channelId,
