@@ -39,12 +39,21 @@ export async function handleMessage({
         runId
       });
 
+      const memoryCommand = String(cleanedContent || "")
+        .trim()
+        .toLowerCase()
+        .split(/\s+/)
+        .slice(0, 2)
+        .join(" ") || "mem";
+
       if (handled) {
         log("memory_command_handled", {
           runId,
           channelId,
           userId: message.author.id,
           messageId: message.id,
+          command: memoryCommand,
+          durationMs: Date.now() - t0,
         });
         return;
       }
