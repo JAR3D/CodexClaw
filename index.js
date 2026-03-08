@@ -136,6 +136,7 @@ client.on(Events.MessageCreate, async (message) => {
     log("outer_handler_error", {
       runId,
       channelId: message?.channel?.id,
+      userId: message?.author?.id,
       messageId: message?.id,
       error: err?.message || String(err),
     });
@@ -146,6 +147,7 @@ client.on(Events.MessageCreate, async (message) => {
       log("outer_error_reply_failed", {
         runId,
         channelId: message?.channel?.id,
+        userId: message?.author?.id,
         messageId: message?.id,
         error: replyErr?.message || String(replyErr),
       });

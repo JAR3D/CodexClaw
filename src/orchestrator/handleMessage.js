@@ -139,6 +139,8 @@ export async function handleMessage({
       log("run_done", {
         runId,
         channelId,
+        userId: message.author.id,
+        messageId: message.id,
         threadId: thread?._id || null,
         durationMs: Date.now() - t0,
         responseChars: safeReply.length,
@@ -151,6 +153,8 @@ export async function handleMessage({
       log("run_error", {
         runId,
         channelId,
+        userId: message.author.id,
+        messageId: message.id,
         threadId: thread?._id || threadId || null,
         durationMs: Date.now() - t0,
         error: err?.message || String(err),
@@ -164,6 +168,8 @@ export async function handleMessage({
         log("run_error_reply_failed", {
           runId,
           channelId,
+          userId: message.author.id,
+          messageId: message.id,
           error: replyErr?.message || String(replyErr),
         });
       }
