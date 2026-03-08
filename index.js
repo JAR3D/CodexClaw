@@ -116,6 +116,7 @@ client.on(Events.MessageCreate, async (message) => {
         runId,
         channelId,
         userId: message.author.id,
+        messageId: message.id,
         waitMs: cd.waitMs || 0,
       });
       await message.reply(`Espera ${waitSec}s antes de fazer outro pedido 🙂`);
