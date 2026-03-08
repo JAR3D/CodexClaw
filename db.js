@@ -124,7 +124,7 @@ export function searchMemories({ channelId, query, limit = 6 }) {
     WHERE memories_fts MATCH ?
       AND m.channel_id = ?
       AND m.kind IN ('note','fact')
-    ORDER BY score
+    ORDER BY score, m.created_at DESC, m.id DESC
     LIMIT ?
   `).all(ftsQuery, channelId, limit);
 }
@@ -151,7 +151,10 @@ export function getMemoriesByKind({ channelId, kind, limit = 10 }) {
 }
 
 export function touchMemories({ ids }) {
-  const list = Array.isArray(ids) ? ids.filter(Boolean) : [];
+  const list = Array.isArray(ids)
+    ? Array.from(new Set(ids.filter(Boolean)))
+    : [];
+
   if (list.length === 0) return 0;
 
   const now = Math.floor(Date.now() / 1000);
