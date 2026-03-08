@@ -126,6 +126,8 @@ export async function handleMessage({
         log("large_response_detected", {
           runId,
           channelId,
+          userId: message.author.id,
+          messageId: message.id,
           chunks: nonEmptyChunks.length,
           responseChars: safeReply.length,
         });
